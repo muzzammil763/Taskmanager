@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Task Manager</title>
+    <style>
+        /* ============= Global Styles ============= */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 80%;
+            max-width: 600px;
+            padding: 20px;
+            background: #fff;
+            margin-top: 50px; /*Added Margin Top*/
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+
+        /* ============= Task Creation Form ============= */
+        .task-form {
+            display: flex;
+            margin-bottom: 20px;
+            gap: 10px; /* Added gap */
+
+        }
+       
+         .task-form input,
+        .task-form button {
+            padding: 10px;
+            border-radius: 4px;
+        }
+    
+
+        .task-form input {
+           flex: 1;
+            border: 1px solid #ddd;
+
+        }
+
+        .task-form button {
+            background-color: #5cb85c;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+
+        }
+
+         .task-form button:hover{
+            background-color: #4cae4c;
+            }
+
+
+
+        /* ============= Task List ============= */
+        .task-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .task-list li {
+            background-color: #f0f0f0;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+          .task-list li.completed {
+             background-color: #dff0d8; /* Light green background for completed tasks */
+          }
+
+
+        .task-list li span {
+           
+            flex-grow: 1; /* Allow task text to expand and take available space */
+
+            word-wrap: break-word; /* Allows words to break on long text */
+             margin-right: 10px;/* Added margin*/
+             white-space: normal;/* Wrap long test*/
+
+        }
+
+
+        .task-list li span.completed-text{
+             text-decoration: line-through; /* Display line through text for completed tasks*/
+            opacity: 0.7;
+        }
+
+
+
+
+        .task-list li .action-buttons{
+            display: flex;
+             gap: 5px; /* added gap */
+         }
+
+
+        .task-list li button {
+            padding: 6px 8px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #777;
+             font-size: 15px;/* font Size to match checkmark */
+             transition: transform 0.3s ease, color 0.3s ease;
+             outline:none;/* removed focus effect*/
+        }
+
+
+       .task-list li button.mark-complete:hover{
+        color: #5cb85c;
+         transform: scale(1.1);/* Added animation hover*/
+          }
+
+
+        .task-list li button.delete:hover{
+        color: #d9534f;
+         transform: scale(1.1); /* Added animation hover */
+
+          }
+
+
+
+
+          /* ============= empty list styling ============= */
+          .task-list-empty{
+                text-align: center;
+                font-style: italic;
+                color: #888;
+              
+            }
+
+            /* ============= Filter Styles ============= */
+
+            .filter-container{
+                  margin-bottom: 20px; /*added margin for the spacing between container and task section*/
+                  display: flex;
+                  justify-content: space-between; /*push filter to right side*/
+                
+                }
+
+            .filter-container button{
+
+                background-color: transparent;/* Removed Background Color*/
+                border: none; /* removed Border */
+                color: #337ab7;/* Changed Filter Text Color*/
+                font-size: 16px; /*Changed font Size*/
+                cursor: pointer;
+                padding: 6px;
+                 border-radius: 4px;
+                 margin: 2px;/*addes little margin between the buttons*/
+
+            }
+                .filter-container button.active{
+                    background-color:#337ab7; /*Active button*/
+                      color: white; /* set filter to be white*/
+
+                   }
+
+
+
+         /* Small screens adjustments */
+          @media (max-width: 600px){
+           .container {
+                    width: 90%;
+                   }
+
+            .task-form{
+                    flex-direction: column;
+
+            }
+
+               .task-form button{
+
+                    width:100%;/* width for button */
+
+                }
+
+               
+              .task-list li{
+                  flex-direction: column; /*changed directio*/
+                  align-items: flex-start; /* aligned to start when columns*/
+                  
+            }
+
+             .task-list li span{
+                   margin-bottom:10px; /* add little margin*/
+                 
+                 }
+           .task-list li .action-buttons{
+             align-self: flex-end;
+         }
+
+
+
+
+          }
+       /* ================================*/
+
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Task Manager</h2>
+
+        <!-- Task Form for adding new tasks -->
+        <div class="task-form">
+            <input type="text" id="taskInput" placeholder="Add new task..." />
+            <button id="addTaskButton">Add Task</button>
+        </div>
+
+        <!-- Filtering container  -->
+         <div class="filter-container">
+           <div ></div> <!-- placeholder empty div for gap inbetween button and Filter Label -->
+            <div> <button id="allTasksButton" class="filter-btn active">All</button>
+            <button id="pendingTasksButton" class="filter-btn">Pending</button>
+            <button id="completedTasksButton" class="filter-btn">Completed</button>
+            </div>
+          
+        </div>
+
+
+        <!-- Task List Display Area -->
+        <ul class="task-list" id="taskList">
+
+        </ul>
+    </div>
+
+
+     <!-- Javascript here -->
+    <script>
+         document.addEventListener('DOMContentLoaded', () => { // Execute JS code after page fully loads.
+           
+         const taskInput = document.getElementById('taskInput'); // Gets the input Field
+          const addTaskButton = document.getElementById('addTaskButton'); // Get Add task button
+
+           const taskList = document.getElementById('taskList');  // Gets the List section to add in task
+
+             // buttons for filter
+             const allTasksButton = document.getElementById('allTasksButton');
+              const pendingTasksButton = document.getElementById('pendingTasksButton');
+               const completedTasksButton = document.getElementById('completedTasksButton');
+
+
+                // List that stores Tasks in it
+          let tasks = JSON.parse(localStorage.getItem('tasks')) || []; //loads list form local storage or create a new task
+
+
+        renderTasks();// call this method initially to load any tasks form local storage on page load
+
+
+
+
+         /* =======  Add new task ==============*/
+
+            addTaskButton.addEventListener('click', () =>{ //Add task to the task lists
+
+
+                 const taskText = taskInput.value.trim(); // to remove spacing around strings
+
+
+
+              if (taskText !== '') {// adds a new task when not a empty string is inserted
+                   const newTask = {  // structure of Task data
+                       id: Date.now(), // generating a unique id
+                         text: taskText, // task entered
+                      completed: false // defualt set to false as no task is initially marked as complete
+
+                   }
+
+
+                  tasks.push(newTask); // adding new Task to the list
+
+                   saveTasks();  // persist the changes in storage
+
+                   renderTasks();//render task ui
+
+                      taskInput.value=''; //empty task input after submit.
+                }
+
+
+
+             });
+
+             /* ========== Task Filter function =============*/
+
+            // function to filter buttons
+
+               const filterTasks =(filterType) => {
+                    
+                  allTasksButton.classList.remove('active'); // removed classes so there is one active state at any moment
+                   pendingTasksButton.classList.remove('active');
+                  completedTasksButton.classList.remove('active');
+
+
+                      // Adding active state
+                  if(filterType === 'all'){
+
+                      allTasksButton.classList.add('active')
+
+                       }else if(filterType ==='pending'){
+                           pendingTasksButton.classList.add('active')
+
+                        }else if(filterType === 'completed'){
+
+                          completedTasksButton.classList.add('active')
+                           }
+
+
+                       // re render the list according to the filtered state
+                  renderTasks(filterType)
+               }
+                    
+
+                 allTasksButton.addEventListener('click', () => filterTasks('all'));// call on All Filter selection
+                 pendingTasksButton.addEventListener('click',() => filterTasks('pending')); // Call on pending filter
+                 completedTasksButton.addEventListener('click', () => filterTasks('completed'));// call on completed filter
+
+
+
+                
+                
+           /* ======== Render list on UI==============*/
+             function renderTasks(filterType = 'all'){ //  render list to screen
+                      
+                  taskList.innerHTML= ''; // Empties previous List before rerendering to get most updated version
+                    let taskDisplay;
+
+
+                   if(filterType==='pending'){// if there a pendin selection render pending filter
+
+
+                          taskDisplay = tasks.filter(task => !task.completed) // only those tasks that are not completed will be added to array
+                   }else if (filterType==='completed'){  // render completed tasks in this selection
+
+                             taskDisplay = tasks.filter(task=>task.completed)  // tasks which are already marked completed will be loaded
+
+
+                        }
+                    else{  // else  load all
+                        taskDisplay = [...tasks]; // loads all the task as its passed on with a value all
+                        
+                     }
+
+
+                    if(taskDisplay.length === 0){
+                      taskList.innerHTML= '<li class="task-list-empty"> No Task Yet ... </li>'
+                         return;
+                    }
+
+
+
+                  taskDisplay.forEach(task =>{
+                       const li= document.createElement('li');// li elements for list
+
+                     const span = document.createElement('span');// text for each element.
+
+                    span.textContent = task.text // Task text;
+
+
+                       if(task.completed){
+
+                        span.classList.add('completed-text')// if marked add completed styling
+
+                      li.classList.add('completed')// for style if done add background
+                   }
+
+                       li.appendChild(span) // task text element for single list
+
+
+
+                        const actionButtons = document.createElement('div');
+                         actionButtons.classList.add('action-buttons');// to give buttons common style
+
+
+
+                          const completeButton = document.createElement('button');  // for Complete Buttons
+
+                           completeButton.innerHTML= '&#10003'; // Adding a simple tick mark using html character code
+                          completeButton.classList.add('mark-complete')
+
+                              //Add event listeners to mark completion or change complete states.
+                             completeButton.addEventListener('click',() =>{
+                               task.completed= !task.completed // Toogle state based on each button state.
+
+                               saveTasks(); // saves new values
+                             renderTasks(filterType);  // refreshes page
+                        });
+
+
+                        const deleteButton = document.createElement('button')// for Delet buttons.
+
+                       deleteButton.textContent='x'
+                       deleteButton.classList.add('delete')
+
+                         //event listener for Delete option for buttons.
+                      deleteButton.addEventListener('click', () =>{
+
+
+                            tasks = tasks.filter(t => t.id !== task.id);//filter method
+                             saveTasks()
+                           renderTasks(filterType);//refreshes task for most current data
+                    });
+
+                
+                      actionButtons.appendChild(completeButton)  //add button to div element.
+                    actionButtons.appendChild(deleteButton);// adds delete to each tasks list
+
+                      li.appendChild(actionButtons);// adding to single task li;
+
+                
+                        taskList.appendChild(li); // adds whole task to the whole List item on page
+                  });
+           }
+
+
+         /* ======== store list into local Storage =============== */
+        
+          const saveTasks =()=> {
+               localStorage.setItem('tasks', JSON.stringify(tasks));// converts into String to Store
+            }
+
+
+
+         })
+    </script>
+</body>
+
+</html>
